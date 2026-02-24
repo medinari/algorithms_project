@@ -1,0 +1,292 @@
+#+TITLE: Abschlussprojekt Grundlagen Algorithmen  
+#+SUBTITLE: Using Brute Force to sorting fictitious linear epitopes  
+#+AUTHOR: Ricardo A. Orbegozo-Medina  
+#+DATE: 23-02-2026  
+#+LANGUAGE: en  
+#+OPTIONS: toc:t num:t \n:t 
+
+# % -------------- LATEX SETUP --------------
+#+LATEX_COMPILER: xelatex
+#+LATEX_CLASS: article
+# % Margings: asymmetric for book-style layout
+#+LATEX_HEADER: \usepackage[a4paper,inner=1.5in,outer=1.2in,top=0.8in,bottom=0.8in,includehead,headheight=15pt,twoside]{geometry}
+
+# % Font setup: 
+#+LATEX_HEADER: \usepackage{fontspec}                                  % set custom fonts
+#+LATEX_HEADER: \setmainfont[Ligatures=TeX,Scale=1]{Liberation Sans}   % text font+size
+#+LATEX_HEADER: \setmonofont[Ligatures=TeX,Scale=0.8]{Source Code Pro} % code font+size
+
+# % --- Paragraph spacing: ---
+#+LATEX_HEADER: \usepackage{parskip}
+#+LATEX_HEADER: \setlength{\parskip}{0em}   % or 0.3em, 0.2em, etc.
+#+LATEX_HEADER: \setlength{\parindent}{0pt}   % remoce paragraph indentation (sangria)
+# remove indentation at the beggining of paragraphs
+#+LATEX_HEADER: \usepackage{etoolbox}
+#+LATEX_HEADER: \AtBeginEnvironment{document}{\justifying}
+#+LATEX_HEADER: \usepackage{ragged2e}
+#+LATEX_HEADER: \justifying
+
+# % --- generate table of content (xelatex) ---
+# % white page before toc
+#+LATEX: \clearpage
+#+LATEX: \thispagestyle{empty}
+#+LATEX: \null
+# #+LATEX: \newpage
+# #+BEGIN_EXPORT latex
+# \tableofcontents
+# #+END_EXPORT
+# #+LATEX: \clearpage
+# % --- Color Support ---
+#+LATEX_HEADER: \usepackage[x11names,svgnames,dvipsnames]{xcolor}
+# --- 10 colores importantes ---
+#+LATEX_HEADER: % Definir colores faltantes y fallback seguro
+#+LATEX_HEADER: \definecolor{Gray30}{gray}{0.30} % define Gray30 como 30% negro
+#+LATEX_HEADER: \definecolor{Gray50}{gray}{0.50} % (opcional) ejemplo adicional
+#+LATEX_HEADER: \colorlet{basictextcolor}{Black!70}          % texto normal
+#+LATEX_HEADER: \colorlet{keywordcolor}{DodgerBlue3!90}      % palabras clave
+#+LATEX_HEADER: \colorlet{commentcolor}{Black!70}            % comentarios
+#+LATEX_HEADER: \colorlet{stringcolor}{Goldenrod3!85}        % strings
+#+LATEX_HEADER: \colorlet{numbercolor}{MediumPurple3!85}     % números
+#+LATEX_HEADER: \colorlet{identifiercolor}{Black!85}         % variables
+#+LATEX_HEADER: \colorlet{backgroundcolor}{GhostWhite}       % fondo
+# #+LATEX_HEADER: \colorlet{backgroundcolor}{Gray10}       % fondo
+#+LATEX_HEADER: \colorlet{rulecolor}{SlateGray3}             % bordes
+#+LATEX_HEADER: \colorlet{outputcolor}{Gray30}               % salida de consola
+#+LATEX_HEADER: \colorlet{promptcolor}{Gray50}               % símbolo >
+# % --- code blocks format ---
+# #+LATEX_HEADER: \usepackage{xcolor}
+#+LATEX_HEADER: \usepackage{listings}
+# #+LATEX_HEADER: \usepackage{listingsutf8} % deprecated in texlive 2025
+#+LATEX_HEADER: \lstset{
+#+LATEX_HEADER:   inputencoding=utf8,
+#+LATEX_HEADER:   extendedchars=true,
+#+LATEX_HEADER:   language=R,
+# #+LATEX_HEADER:   basicstyle=\ttfamily\small\color{black},
+#+LATEX_HEADER:   basicstyle=\ttfamily\color{black},
+#+LATEX_HEADER:   keywordstyle=\color{keywordcolor},
+#+LATEX_HEADER:   commentstyle=\color{commentcolor},
+#+LATEX_HEADER:   stringstyle=\color{stringcolor},
+#+LATEX_HEADER:   identifierstyle=\color{identifiercolor},
+#+LATEX_HEADER:   numberstyle=\color{numbercolor},
+#+LATEX_HEADER:   backgroundcolor=\color{backgroundcolor},
+#+LATEX_HEADER:   morekeywords={mean,var,sd,data,print,summary,plot},
+#+LATEX_HEADER:   showspaces=false,
+#+LATEX_HEADER:   showstringspaces=false,
+#+LATEX_HEADER:   breaklines=true,
+#+LATEX_HEADER:   frame=none,
+#+LATEX_HEADER:   columns=fullflexible
+#+LATEX_HEADER: }
+# % --- results verbatim blocks format ---
+#+LATEX_HEADER: \usepackage{framed}
+#+LATEX_HEADER: \definecolor{shadecolor}{named}{GhostWhite}
+#+LATEX_HEADER: \let\oldverbatim\verbatim
+#+LATEX_HEADER: \let\endoldverbatim\endverbatim
+#+LATEX_HEADER: \renewenvironment{verbatim}
+#+LATEX_HEADER:   {\begin{snugshade*}\oldverbatim}
+#+LATEX_HEADER:   {\endoldverbatim\end{snugshade*}}
+
+
+#+PROPERTY: header-args:R :session Rstat :results output :exports both
+
+
+* Introduction
+
+As a veterinarian dedicated to immunological research in animal models, one of the hot topics that I had work is the subunit-vaccine development, which requires the identification and prioritization of epitopes, peptide short sequences from proteins, potentially immunogenic. In this work I want to show how before in vitro or animal model experimentation, is necessary to organize lists of epitope candidates for subunit-vaccine according to different criteria, like peptide length, affinity for MHC molecules, physicochemistry properties or even more advanced models known as QSAR.
+
+Despite sorting algorithms cannot predict immunogenicity, they represent a fundamental computational tool to sort biological data. The focus that I give to this project was to understand how the algorithm *insertion sort* could be implemented to sort a list of fictitious linear peptide epitopes according to their length, showing step by step how the algorithm works and its possible application to immunological data.
+
+* Description of the algorithm
+
+The idea of the *insertion sort* algorithm is to navigate a list of epitopes from left to right, taking one epitope and inserting it in the right position in the list. As a brute force sorting algorithm it will sequentially compare all the sequences.
+
+Input: a list of linear epitope sequences \(e=(e_1,e_2,...,e_n)\).  
+Output: an ascendingly sorted list of the epitopes in \(e\).
+
+#+begin_export latex
+\textbf{Algorithm Insertion Sort} $(e)$
+
+\textbf{for} $i = 2$ \textbf{to} length$(e)$ \textbf{do}
+
+\quad value to be inserted $\leftarrow e[i]$
+
+\quad $j \leftarrow i - 1$
+
+\quad \textbf{while} $j > 0$ \textbf{and} $e[j] >$ value to be inserted \textbf{do}
+
+\qquad $e[j + 1] \leftarrow e[j]$
+
+\qquad $j \leftarrow j - 1$
+
+\quad \textbf{end while}
+
+\quad $e[j + 1] \leftarrow$ value to be inserted
+
+\textbf{end for}
+#+end_export
+#+LATEX: \clearpage
+* Implementation in R
+
+**  Definition of fictitious epitopes using one letetr code
+
+#+BEGIN_SRC R :results output :exports both
+aa <- c(
+  "A",  # Alanine
+  "C",  # Cysteine
+  "D",  # Aspartic acid
+  "E",  # Glutamic acid
+  "F",  # Phenylalanine
+  "G",  # Glycine
+  "H",  # Histidine
+  "I",  # Isoleucine
+  "K",  # Lysine
+  "L",  # Leucine
+  "M",  # Methionine
+  "N",  # Asparagine
+  "P",  # Proline
+  "Q",  # Glutamine
+  "R",  # Arginine
+  "S",  # Serine
+  "T",  # Threonine
+  "V",  # Valine
+  "W",  # Tryptophan
+  "Y"   # Tyrosine
+)
+# generate epitope lengths randomnly between 4 to 7 residues
+epitope_lengths <- sample(4:7, 6, replace=TRUE) # samples will be replaced each time
+# Generate random epitopes
+epitopes <- sapply(epitope_lengths, function(len) {
+  paste0(sample(aa, len, replace = TRUE), collapse = "")
+})
+epitopes # show result sequences
+nchar(epitopes) # show number of residues per sequence
+#+END_SRC
+
+#+RESULTS:
+: [1] "MQKFTEP" "THWTVFK" "HIITTV"  "CSPEDT"  "NALP"    "EEMGVGH"
+: [1] 7 7 6 6 4 7
+
+#+LATEX: \clearpage
+** Function: Insertion Sort by Length
+
+#+BEGIN_SRC R :results output :exports both
+insertion_sort_epitopes <- function(x) {
+  steps = list() # keep rack of each (intermediate) step
+  n = length(x) # how many aa's
+  steps[[1]] = x # save unsorted vector
+  step_idx = 2  # start from second element
+  for (i in 2:n) { # iterate vector
+    key = x[i] # peptide to be sorted
+    key_len = nchar(key) # peptide length
+    j = i - 1 # start from backwards 
+    while (j > 0 && nchar(x[j]) > key_len) {
+      x[j + 1] = x[j] # move peptide to the right
+      j = j - 1 # or keep moving to the left
+    }
+    x[j + 1] = key # drop the peptide in the right spot
+    steps[[step_idx]] = x # save this step
+    step_idx = step_idx + 1 # increment index by one
+  }
+  
+  list(sorted = x, steps = steps) # return sorted epitope vector and steps
+}
+
+res = insertion_sort_epitopes(epitopes) # apply function to epitopes
+res$sorted # show sorted epitopes
+#+END_SRC
+
+#+RESULTS:
+: [1] "NALP"    "HIITTV"  "CSPEDT"  "MQKFTEP" "THWTVFK" "EEMGVGH"
+
+#+LATEX: \clearpage
+** Results
+Visualize intermediate states of this algorithm:
+
+#+BEGIN_SRC R :results output :exports both
+res$steps # show intermediate steps
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+[[1]]
+[1] "MQKFTEP" "THWTVFK" "HIITTV"  "CSPEDT"  "NALP"    "EEMGVGH"
+
+[[2]]
+[1] "MQKFTEP" "THWTVFK" "HIITTV"  "CSPEDT"  "NALP"    "EEMGVGH"
+
+[[3]]
+[1] "HIITTV"  "MQKFTEP" "THWTVFK" "CSPEDT"  "NALP"    "EEMGVGH"
+
+[[4]]
+[1] "HIITTV"  "CSPEDT"  "MQKFTEP" "THWTVFK" "NALP"    "EEMGVGH"
+
+[[5]]
+[1] "NALP"    "HIITTV"  "CSPEDT"  "MQKFTEP" "THWTVFK" "EEMGVGH"
+
+[[6]]
+[1] "NALP"    "HIITTV"  "CSPEDT"  "MQKFTEP" "THWTVFK" "EEMGVGH"
+#+end_example
+
+# We can also organize these states in a table:
+# 
+# #+BEGIN_SRC R :results output :exports both
+# max_length <- max(sapply(steps, length))
+# step_mat <- do.call(rbind, lapply(steps, function(v) {
+#   length(v) <- max_length
+#   v
+# }))
+# colnames(step_mat) <- paste0("Pos", 1:max_length)
+# rownames(step_mat) <- paste0("Step", 0:(nrow(step_mat)-1))
+# step_mat
+# #+END_SRC
+# 
+# #+RESULTS:
+# : Pos1      Pos2      Pos3      Pos4      Pos5      Pos6     
+# : Step0 "MQKFTEP" "THWTVFK" "HIITTV"  "CSPEDT"  "NALP"    "EEMGVGH"
+# : Step1 "MQKFTEP" "THWTVFK" "HIITTV"  "CSPEDT"  "NALP"    "EEMGVGH"
+# : Step2 "HIITTV"  "MQKFTEP" "THWTVFK" "CSPEDT"  "NALP"    "EEMGVGH"
+# : Step3 "HIITTV"  "CSPEDT"  "MQKFTEP" "THWTVFK" "NALP"    "EEMGVGH"
+# : Step4 "NALP"    "HIITTV"  "CSPEDT"  "MQKFTEP" "THWTVFK" "EEMGVGH"
+# : Step5 "NALP"    "HIITTV"  "CSPEDT"  "MQKFTEP" "THWTVFK" "EEMGVGH"
+
+** Interpretation
+
+The initial epitopes vector has mixed lengths between 7 and 10 amino acids. After applying the *insertion sort* algorithm with length as sorting criterion, we obtain a list ordered from shortest to longest. As we discussed during the lecture, in the best scenario (already sorted epitope vector) the complexity is linear \(O(n)\) and in the worst and the regular scenario the complexity is quadratic \(O(n^2)\). It is not computational efficient but this is a necesary first step. The major justification here is that the linear epitopes used in vaccine development are very short peptide sequences of no more than 30 residues, which are an assumble cost. It should not be used bigger sizes because it generates steric hindrance which interfers with the stability of the molecule, and even shift the immunogenicity of it, as I know from experience... 
+
+#+LATEX: \clearpage
+* Further steps
+
+This example illustrates how this classic, deterministic and easy to implement sorting algorithm can be used to organize biological data, in this case peptide epitopes, before later stages of analysis or experimental selection. I know this is a baby step in terms on a bioinformatician, the further step that I have in mind is to incorporate brute-force sorting by molecular weight, hydrophobicity, chemical complexity, and further criteria that could be inplemented in an elegant way if we incorporate the SMILES representation of the aminoacids molecules:
+
+#+begin_src R :results output
+aa <- c(
+  "A",  # Alanine        Ala   N[C@@H](C)C(=O)
+  "C",  # Cysteine       Cys   N[C@@H](CS)C(=O)
+  "D",  # Aspartic acid  Asp   N[C@@H](CC(=O)O)C(=O)
+  "E",  # Glutamic acid  Glu   N[C@@H](CCC(=O)O)C(=O)
+  "F",  # Phenylalanine  Phe   N[C@@H](CC1=CC=CC=C1)C(=O)
+  "G",  # Glycine        Gly   NCC(=O)
+  "H",  # Histidine      His   N[C@@H](CC1=CN=CN1)C(=O)
+  "I",  # Isoleucine     Ile   N[C@@H](C(C)CC)C(=O)
+  "K",  # Lysine         Lys   N[C@@H](CCCCN)C(=O)
+  "L",  # Leucine        Leu   N[C@@H](CC(C)C)C(=O)
+  "M",  # Methionine     Met   N[C@@H](CCSC)C(=O)
+  "N",  # Asparagine     Asn   N[C@@H](CC(=O)N)C(=O)
+  "P",  # Proline        Pro   N1CCC[C@H]1C(=O)
+  "Q",  # Glutamine      Gln   N[C@@H](CCC(=O)N)C(=O)
+  "R",  # Arginine       Arg   N[C@@H](CCCNC(N)=N)C(=O)
+  "S",  # Serine         Ser   N[C@@H](CO)C(=O)
+  "T",  # Threonine      Thr   N[C@@H](C(O)C)C(=O)
+  "V",  # Valine         Val   N[C@@H](C(C)C)C(=O)
+  "W",  # Tryptophan     Trp   N[C@@H](CC1=CNC2=CC=CC=C12)C(=O)
+  "Y"   # Tyrosine       Tyr   N[C@@H](CC1=CC=C(O)C=C1)C(=O)
+)
+#+end_src
+
+This way we could implement a no real predictive QSAR model, a toy QSAR scoring function that mimics the logic of:
+| more hydrophobic    | → | higher score            |
+| more aromatic rings | → | higher score            |
+| more heteroatoms    | → | lower score             |
+| more branching      | → | higher complexity score |
+|                     |   |                         |
+
+These QSAR descriptors could be brute-force computed with single string operations on the SMILES showed in the code above. What I tryed to show is that baby steps are neccesary before running into more advance but exciting bioinformatics/cheminformatics implementations. Further steps involves generate real predictive QSAR models which descriptors correlates with hydrophobicity, membrane accesibility, MHC binding preferences, peptide stability and solubility, which could be considered a real bioinformatics tool.
